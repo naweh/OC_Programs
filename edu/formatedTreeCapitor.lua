@@ -1,4 +1,4 @@
------------------------木こりプログラム-------------------------
+-----------------------木こりプログラム-------------------------------
 -- 予め定められた特定の場所に植えられた木を伐採・植林する
 -- ※Slot1に苗木を必要数持たせておく
 -- ※南を向かせておく
@@ -30,6 +30,39 @@ if not component.isAvailable("robot") then
     io.stderr:write("can only run on robots")
     return
 end
+
+if not component.isAvailable("tractor_beam") then
+    io.stderr:write("can only run on robots with tractor_beam")
+    return
+end
+
+
+---------------- Main Process ----------------
+-- 各植林ポイントを巡回し、木が成長していれば伐採・植林
+for i=1,nPlantingPoints do
+    for x, y, z in pairs(plantingPoints[i]) do
+        -- 植林ポイントに接する座標まで移動
+        local b, faceSide = MoveToFacePoint(x, y, z)
+        if not b then
+            io.stderr:write("failed move to point")
+            break
+        end
+
+        -- 木が成長していれば伐採・植林
+        if TreeChopAndPlant(faceSide) then
+            -- 周囲に落ちた苗木を回収
+            while component.tractor_beam.suck() do
+            end
+            if not IsHaveSpace() then
+                StoreToChest()
+            end
+        end
+    end
+end
+
+-- 初期配置へ戻る
+StoreToChest()
+ReturnToHome()
 
 
 ---------------- Sub Procedure ----------------
@@ -82,10 +115,10 @@ function MoveToFacePoint(x, y, z)
     for i, d in ipairs(diffs) do
         -- cf. http://ocdoc.cil.li/api:sides
         if d > 0 then
-            return true, i * 2 - 1
+            return true, (i - 1) * 2
         end
         if d < 0 then
-            return true, i * 2
+            return true, (i - 1) * 2 + 1
         end
     end
 end
@@ -174,35 +207,8 @@ function ReturnToHome()
     -- 初期座標へ移動
     local b, faceSide = MoveToFacePoint(0, 0, 0)
     if not b then
-        io.stderr:write("failed move to point")
-        break
+        return false
     end
     r.move(faceSide)
+    return true
 end
-
----------------- Main Process ----------------
--- 各植林ポイントを巡回し、木が成長していれば伐採・植林
-for i=1,nPlantingPoints do
-    for x, y, z in pairs(plantingPoints[i]) do
-        -- 植林ポイントに接する座標まで移動
-        local b, faceSide = MoveToFacePoint(x, y, z)
-        if not b then
-            io.stderr:write("failed move to point")
-            break
-        end
-
-        -- 木が成長していれば伐採・植林
-        if TreeChopAndPlant(faceSide) then
-            -- 周囲に落ちた苗木を回収
-            while component.tractor_beam.suck() do
-            end
-            if not IsHaveSpace() then
-                StoreToChest()
-            end
-        end
-    end
-end
-
--- 初期配置へ戻る
-StoreToChest()
-ReturnToHome()
