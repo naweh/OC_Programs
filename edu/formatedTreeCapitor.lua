@@ -36,35 +36,6 @@ if not component.isAvailable("tractor_beam") then
     return
 end
 
-
----------------- Main Process ----------------
--- 各植林ポイントを巡回し、木が成長していれば伐採・植林
-for i=1,nPlantingPoints do
-    for x, y, z in pairs(plantingPoints[i]) do
-        -- 植林ポイントに接する座標まで移動
-        local b, faceSide = MoveToFacePoint(x, y, z)
-        if not b then
-            io.stderr:write("failed move to point")
-            break
-        end
-
-        -- 木が成長していれば伐採・植林
-        if TreeChopAndPlant(faceSide) then
-            -- 周囲に落ちた苗木を回収
-            while component.tractor_beam.suck() do
-            end
-            if not IsHaveSpace() then
-                StoreToChest()
-            end
-        end
-    end
-end
-
--- 初期配置へ戻る
-StoreToChest()
-ReturnToHome()
-
-
 ---------------- Sub Procedure ----------------
 function MoveToFacePoint(x, y, z)
     -- 変数の準備
@@ -107,7 +78,7 @@ function MoveToFacePoint(x, y, z)
     -- 指定座標に面しているかチェック
     local diff = math.abs(dx - x) + math.abs(dy - y) + math.abs(dz - z)
     if diff ~= 1 then
-        return false
+        return false, nil
     end
 
     -- 指定座標に面している面を導出してリターン
@@ -176,26 +147,28 @@ end
 function StoreToChest()
     -- 各チェストを巡回
     for i=1, nChestPoint do
-        for x, y, z in pairs(chestPoints) do
-            -- チェストまで移動
-            local b, faceSide = MoveToFacePoint(x, y, z)
-            if not b then
-                io.stderr:write("failed move to point")
+        local x = chestPoints[i][1]
+        local y = chestPoints[i][2]
+        local z = chestPoints[i][3]
+
+        -- チェストまで移動
+        local b, faceSide = MoveToFacePoint(x, y, z)
+        if not b then
+            io.stderr:write("failed move to point")
+            break
+        end
+
+        -- アイテムを格納
+        for slotIdx = 2, r.inventorySize() do
+            r.select(slotIdx)
+            if not r.drop(faceSide) then
                 break
             end
+        end
 
-            -- アイテムを格納
-            for slotIdx = 2, r.inventorySize() do
-                r.select(slotIdx)
-                if not r.drop(faceSide) then
-                    break
-                end
-            end
-
-            -- 全アイテムを格納していれば終了
-            if slotIdx == r.inventorySize() then
-                return true
-            end
+        -- 全アイテムを格納していれば終了
+        if slotIdx == r.inventorySize() then
+            return true
         end
     end
 
@@ -212,3 +185,33 @@ function ReturnToHome()
     r.move(faceSide)
     return true
 end
+
+
+---------------- Main Process ----------------
+-- 各植林ポイントを巡回し、木が成長していれば伐採・植林
+for i=1, nPlantingPoints do
+    local x = plantingPoints[i][1]
+    local y = plantingPoints[i][2]
+    local z = plantingPoints[i][3]
+
+    -- 植林ポイントに接する座標まで移動
+    local b, faceSide = MoveToFacePoint(x, y, z)
+    if not b then
+        io.stderr:write("failed move to point")
+        break
+    end
+
+    -- 木が成長していれば伐採・植林
+    if TreeChopAndPlant(faceSide) then
+        -- 周囲に落ちた苗木を回収
+        while component.tractor_beam.suck() do
+        end
+        if not IsHaveSpace() then
+            StoreToChest()
+        end
+    end
+end
+
+-- 初期配置へ戻る
+StoreToChest()
+ReturnToHome()
