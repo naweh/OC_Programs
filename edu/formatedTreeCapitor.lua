@@ -48,6 +48,12 @@ function TurnToRight()
     f = (f + 1) % 4
 end
 
+function TurnToSouth()
+    while f == 0 do
+        TurnToRight()
+    end
+end
+
 function MoveToPosX()
     if f == 0 then
         TurnToLeft()
@@ -164,8 +170,6 @@ function MoveToNegZ()
     return false
 end
 
-
-
 function MoveToPosY()
     if r.move(sides.up) then
         dy = dy + 1
@@ -189,8 +193,8 @@ function MoveToFacePoint(x, y, z)
         moved = false
 
         -- 指定座標に面しているかチェック
-        local diff = math.abs(dx - x) + math.abs(dy - y) + math.abs(dz - z)
-        if diff == 1 then
+        local diff = math.abs(dx - x) + math.abs(dz - z)
+        if diff == 1 and dy == y then
             break
         end
 
@@ -236,15 +240,34 @@ function MoveToFacePoint(x, y, z)
         end
     end
 
+    -- 南を向く
+    TurnToSouth()
+
     -- 指定座標の上に立っていたら後退
     if dx == x and dy == y and dz == z then
         MoveToNegZ()
     end
 
     -- 指定座標に面しているかチェック
-    local diff = math.abs(dx - x) + math.abs(dy - y) + math.abs(dz - z)
-    if diff ~= 1 then
+    local diff = math.abs(dx - x) + math.abs(dz - z)
+    if diff ~= 1 or dy ~= y then
         return false
+    end
+
+    -- 指定座標の方を向く
+    if dx == x then
+        if dz < z then
+            -- already set
+        else
+            TurnToRight()
+            TurnToRight()
+        end
+    else
+        if dx < x then
+            TurnToLeft()
+        else
+            TurnToRight()
+        end
     end
 
     return true
