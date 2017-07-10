@@ -55,20 +55,20 @@ function MoveToPosX()
             dx = dx + 1
             return true
         end
-    else if f == 1 then
+    elseif f == 1 then
         TurnToRight()
         TurnToRight()
         if r.move(sides.front) then
             dx = dx + 1
             return true
         end
-    else if f == 2 then
+    elseif f == 2 then
         TurnToRight()
         if r.move(sides.front) then
             dx = dx + 1
             return true
         end
-    else if f == 3 then
+    elseif f == 3 then
         if r.move(sides.front) then
             dx = dx + 1
             return true
@@ -84,18 +84,18 @@ function MoveToNegX()
             dx = dx - 1
             return true
         end
-    else if f == 1 then
+    elseif f == 1 then
         if r.move(sides.front) then
             dx = dx - 1
             return true
         end
-    else if f == 2 then
+    elseif f == 2 then
         TurnToLeft()
         if r.move(sides.front) then
             dx = dx - 1
             return true
         end
-    else if f == 3 then
+    elseif f == 3 then
         if r.move(sides.front) then
             TurnToLeft()
             TurnToLeft()
@@ -112,20 +112,20 @@ function MoveToPosZ()
             dz = dz + 1
             return true
         end
-    else if f == 1 then
+    elseif f == 1 then
         TurnToLeft()
         if r.move(sides.front) then
             dz = dz + 1
             return true
         end
-    else if f == 2 then
+    elseif f == 2 then
         TurnToRight()
         TurnToRight()
         if r.move(sides.front) then
             dz = dz + 1
             return true
         end
-    else if f == 3 then
+    elseif f == 3 then
         TurnToRight()
         if r.move(sides.front) then
             dz = dz + 1
@@ -139,22 +139,22 @@ function MoveToNegZ()
     if f == 0 then
         TurnToRight()
         TurnToRight()
-            if r.move(sides.front) then
+        if r.move(sides.front) then
             dz = dz - 1
             return true
         end
-    else if f == 1 then
+    elseif f == 1 then
         TurnToRight()
         if r.move(sides.front) then
             dz = dz - 1
             return true
         end
-    else if f == 2 then
+    elseif f == 2 then
         if r.move(sides.front) then
             dz = dz - 1
             return true
         end
-    else if f == 3 then
+    elseif f == 3 then
         TurnToLeft()
         if r.move(sides.front) then
             dz = dz - 1
@@ -163,6 +163,8 @@ function MoveToNegZ()
     end
     return false
 end
+
+
 
 function MoveToPosY()
     if r.move(sides.up) then
