@@ -198,18 +198,6 @@ function MoveToFacePoint(x, y, z)
             break
         end
 
-        if dx ~= x then
-            if dx < x then
-                if MoveToPosX() then
-                    moved = true
-                end
-            else
-                if MoveToNegX() then
-                    moved = true
-                end
-            end
-        end
-
         if dy ~= y then
             if dy < y then
                 if MoveToPosY() then
@@ -229,6 +217,18 @@ function MoveToFacePoint(x, y, z)
                 end
             else
                 if MoveToNegZ() then
+                    moved = true
+                end
+            end
+        end
+
+        if dx ~= x then
+            if dx < x then
+                if MoveToPosX() then
+                    moved = true
+                end
+            else
+                if MoveToNegX() then
                     moved = true
                 end
             end
@@ -311,7 +311,7 @@ end
 
 function IsHaveSpace()
     for slotIdx=2, r.inventorySize() do
-        if not r.space(slotIdx) then
+        if 0 < r.space(slotIdx) then
             return true
         end
     end
@@ -363,12 +363,13 @@ end
 
 ---------------- Main Process ----------------
 -- 各植林ポイントを巡回し、木が成長していれば伐採・植林
+print("--- formated Tree Capitor Program ---")
 for i=1, nPlantingPoints do
     local x = plantingPoints[i][1]
     local y = plantingPoints[i][2]
     local z = plantingPoints[i][3]
 
-    -- 植林ポイントに接する座標まで移動
+    print("move to point")
     local b = MoveToFacePoint(x, y, z)
     if not b then
         io.stderr:write("failed move to point")
@@ -376,10 +377,13 @@ for i=1, nPlantingPoints do
     end
 
     -- 木が成長していれば伐採・植林
+    print("tree chop")
     if TreeChopAndPlant() then
         -- 周囲に落ちた苗木を回収
+        print("suck around")
         while component.tractor_beam.suck() do
         end
+
         if not IsHaveSpace() then
             StoreToChest()
         end
