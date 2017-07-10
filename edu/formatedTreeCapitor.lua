@@ -320,11 +320,13 @@ function TreeChopAndPlant()
     while r.detect(sides.up) do
         r.swing(sides.up)
         MoveToPosY()
+        y = y + 1
     end
 
     -- 元の座標へ移動
     while y ~= 0 do
         MoveToNegY()
+        y = y - 1
     end
 
     -- 植林
