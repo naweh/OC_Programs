@@ -12,7 +12,7 @@ local sides = require("sides")
 -- 変数の準備
 local r = component.robot
 local dx, dy, dz = 0, 0, 0   -- (dx, dy, dz)は初期座標を(0, 0, 0)としてロボットの現在座標を相対座標で記録する
-local f = sides.south        -- ロボットの向いている方角の初期値は南とする
+local f = 0                       -- ロボットの向いている方角の初期値は南とする
 local plantingPoints = {    -- 木が植えられる場所の相対座標の配列
     {2, 0, 2}, {4, 0, 2}, {6, 0, 2}, {8, 0, 2},
     {8, 0, 4}, {6, 0, 4}, {4, 0, 4}, {2, 0, 4},
@@ -25,18 +25,159 @@ local chestPoints = {       -- チェストの相対座標の配列
 }
 local nChestPoint = #chestPoints
 
--- 本プログラムを起動しているのがタートルでなければ異常終了
+-- 本プログラムを起動しているのがタートルでなければ終了
 if not component.isAvailable("robot") then
     io.stderr:write("can only run on robots")
     return
 end
 
+-- タートルにtractor_beamのアップグレードがないなら終了
 if not component.isAvailable("tractor_beam") then
     io.stderr:write("can only run on robots with tractor_beam")
     return
 end
 
 ---------------- Sub Procedure ----------------
+function TurnToLeft()
+    r.turn(false)
+    f = (f + 3) % 4
+end
+
+function TurnToRight()
+    r.turn(true)
+    f = (f + 1) % 4
+end
+
+function MoveToPosX()
+    if f == 0 then
+        TurnToLeft()
+        if r.move(sides.front) then
+            dx = dx + 1
+            return true
+        end
+    else if f == 1 then
+        TurnToRight()
+        TurnToRight()
+        if r.move(sides.front) then
+            dx = dx + 1
+            return true
+        end
+    else if f == 2 then
+        TurnToRight()
+        if r.move(sides.front) then
+            dx = dx + 1
+            return true
+        end
+    else if f == 3 then
+        if r.move(sides.front) then
+            dx = dx + 1
+            return true
+        end
+    end
+    return false
+end
+
+function MoveToNegX()
+    if f == 0 then
+        TurnToRight()
+        if r.move(sides.front) then
+            dx = dx - 1
+            return true
+        end
+    else if f == 1 then
+        if r.move(sides.front) then
+            dx = dx - 1
+            return true
+        end
+    else if f == 2 then
+        TurnToLeft()
+        if r.move(sides.front) then
+            dx = dx - 1
+            return true
+        end
+    else if f == 3 then
+        if r.move(sides.front) then
+            TurnToLeft()
+            TurnToLeft()
+            dx = dx - 1
+            return true
+        end
+    end
+    return false
+end
+
+function MoveToPosZ()
+    if f == 0 then
+        if r.move(sides.front) then
+            dz = dz + 1
+            return true
+        end
+    else if f == 1 then
+        TurnToLeft()
+        if r.move(sides.front) then
+            dz = dz + 1
+            return true
+        end
+    else if f == 2 then
+        TurnToRight()
+        TurnToRight()
+        if r.move(sides.front) then
+            dz = dz + 1
+            return true
+        end
+    else if f == 3 then
+        TurnToRight()
+        if r.move(sides.front) then
+            dz = dz + 1
+            return true
+        end
+    end
+    return false
+end
+
+function MoveToNegZ()
+    if f == 0 then
+        TurnToRight()
+        TurnToRight()
+            if r.move(sides.front) then
+            dz = dz - 1
+            return true
+        end
+    else if f == 1 then
+        TurnToRight()
+        if r.move(sides.front) then
+            dz = dz - 1
+            return true
+        end
+    else if f == 2 then
+        if r.move(sides.front) then
+            dz = dz - 1
+            return true
+        end
+    else if f == 3 then
+        TurnToLeft()
+        if r.move(sides.front) then
+            dz = dz - 1
+            return true
+        end
+    end
+    return false
+end
+
+function MoveToPosY()
+    if r.move(sides.up) then
+        dy = dy + 1
+        return true
+    end
+end
+
+function MoveToNegY()
+    if r.move(sides.down) then
+        dy = dy - 1
+        return true
+    end
+end
+
 function MoveToFacePoint(x, y, z)
     -- 変数の準備
     local moved = false
@@ -44,26 +185,50 @@ function MoveToFacePoint(x, y, z)
     -- かなり適当な移動アルゴリズム
     while true do
         moved = false
+
+        -- 指定座標に面しているかチェック
+        local diff = math.abs(dx - x) + math.abs(dy - y) + math.abs(dz - z)
+        if diff == 1 then
+            break
+        end
+
         if dx ~= x then
-            if r.move(sides.posx) then
-                dx = dx + 1
-                moved = true
-            end
-        end
-        if dy ~= y then
-            if r.move(sides.posy) then
-                dy = dy + 1
-                moved = true
-            end
-        end
-        if dz ~= z then
-            if r.move(sides.posz) then
-                dz = dz + 1
-                moved = true
+            if dx < x then
+                if MoveToPosX() then
+                    moved = true
+                end
+            else
+                if MoveToNegX() then
+                    moved = true
+                end
             end
         end
 
-        -- 動けないor指定座標の上に立っていたら終了
+        if dy ~= y then
+            if dy < y then
+                if MoveToPosY() then
+                    moved = true
+                end
+            else
+                if MoveToNegY() then
+                    moved = true
+                end
+            end
+        end
+
+        if dz ~= z then
+            if dz < z then
+                if MoveToPosZ() then
+                    moved = true
+                end
+            else
+                if MoveToNegZ() then
+                    moved = true
+                end
+            end
+        end
+
+        -- 動けないなら終了
         if not moved then
             break
         end
@@ -71,68 +236,52 @@ function MoveToFacePoint(x, y, z)
 
     -- 指定座標の上に立っていたら後退
     if dx == x and dy == y and dz == z then
-        r.move(sides.negz)
-        z = z - 1
+        MoveToNegZ()
     end
 
     -- 指定座標に面しているかチェック
     local diff = math.abs(dx - x) + math.abs(dy - y) + math.abs(dz - z)
     if diff ~= 1 then
-        return false, nil
+        return false
     end
 
-    -- 指定座標に面している面を導出してリターン
-    local diffs = {dy - y, dz - z, dx - x}
-    for i, d in ipairs(diffs) do
-        -- cf. http://ocdoc.cil.li/api:sides
-        if d > 0 then
-            return true, (i - 1) * 2
-        end
-        if d < 0 then
-            return true, (i - 1) * 2 + 1
-        end
-    end
+    return true
 end
 
-function TreeChopAndPlant(faceSide)
+function TreeChopAndPlant()
     -- 固体ブロック(原木)でなければfalseをリターン
-    if not r.detect(faceSide) then
+    if not r.detect(sides.front) then
         return false, "not solid"
     end
 
     -- その個体ブロックを破壊
-    if not r.swing(faceSide) then
+    if not r.swing(sides.front) then
         return false, "can not break"
     end
 
     -- 植林
     r.select(1)
-    r.place(faceSide)
+    r.place(sides.front)
 
     -- 破壊したブロックの座標に移動
-    if not r.move(faceSide) then
+    if not r.move(sides.front) then
         return false, "failed move. item of slot 1 maybe solid"
     end
 
     -- 上方向に伐採(TODO:Exception Check)
     local y = 0
-    while r.detec(sides.up) do
+    while r.detect(sides.up) do
         r.swing(sides.up)
-        r.move(sides.up)
-        y = y + 1
+        MoveToPosY()
     end
 
     -- 元の座標へ移動
     while y ~= 0 do
-        r.move(sides.down)
-        y = y - 1
+        MoveToNegY()
     end
 
-    if faceSide % 2 == 0 then
-        r.move(faceSide + 1)
-    else            
-        r.move(faceSide - 1)
-    end
+    r.move(sides.back)
+    return true, "success"
 end
 
 function IsHaveSpace()
@@ -152,7 +301,7 @@ function StoreToChest()
         local z = chestPoints[i][3]
 
         -- チェストまで移動
-        local b, faceSide = MoveToFacePoint(x, y, z)
+        local b = MoveToFacePoint(x, y, z)
         if not b then
             io.stderr:write("failed move to point")
             break
@@ -178,11 +327,11 @@ end
 
 function ReturnToHome()
     -- 初期座標へ移動
-    local b, faceSide = MoveToFacePoint(0, 0, 0)
+    local b = MoveToFacePoint(0, 0, 0)
     if not b then
         return false
     end
-    r.move(faceSide)
+    r.move(sides.front)
     return true
 end
 
@@ -195,14 +344,14 @@ for i=1, nPlantingPoints do
     local z = plantingPoints[i][3]
 
     -- 植林ポイントに接する座標まで移動
-    local b, faceSide = MoveToFacePoint(x, y, z)
+    local b = MoveToFacePoint(x, y, z)
     if not b then
         io.stderr:write("failed move to point")
         break
     end
 
     -- 木が成長していれば伐採・植林
-    if TreeChopAndPlant(faceSide) then
+    if TreeChopAndPlant() then
         -- 周囲に落ちた苗木を回収
         while component.tractor_beam.suck() do
         end
