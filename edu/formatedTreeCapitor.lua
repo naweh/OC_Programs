@@ -79,6 +79,7 @@ function MoveToFront()
 
     return false
 end
+
 function MoveToPosX()
     if f == 0 then
         TurnToLeft()
@@ -380,8 +381,9 @@ function ReturnToHome()
     if not b then
         return false
     end
-    r.move(sides.back)
-    robot.turnArond()
+
+    MoveToFront()
+    TurnToSouth()
     return true
 end
 
