@@ -301,8 +301,8 @@ end
 
 function TreeChopAndPlant()
     -- 固体ブロック(原木)でなければfalseをリターン
-    local b = r.detect(sides.front)
-    if not b then
+    local b, str = r.detect(sides.front)
+    if str ~= "solid" then
         return false, "not solid"
     end
 
@@ -311,6 +311,10 @@ function TreeChopAndPlant()
     if not b then
         return false, "can not break"
     end
+
+    -- 植林
+    r.select(1)
+    r.place(sides.front)
 
     -- 破壊したブロックの座標に移動
     MoveToFront()
@@ -327,10 +331,6 @@ function TreeChopAndPlant()
         MoveToNegY()
     end
 
-    -- 植林
-    MoveToFront()
-    r.select(1)
-    r.place(sides.back)
     return true, "success"
 end
 
