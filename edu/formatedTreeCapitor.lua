@@ -312,10 +312,6 @@ function TreeChopAndPlant()
         return false, "can not break"
     end
 
-    -- 植林
-    r.select(1)
-    r.place(sides.front)
-
     -- 破壊したブロックの座標に移動
     MoveToFront()
 
@@ -330,6 +326,13 @@ function TreeChopAndPlant()
     while y ~= 0 do
         MoveToNegY()
     end
+
+    -- 植林
+    MoveToFront()
+    robot.turnAround()
+    r.select(1)
+    r.place(sides.front)
+    robot.turnAround()
 
     return true, "success"
 end
