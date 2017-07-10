@@ -21,7 +21,7 @@ local plantingPoints = {    -- 木が植えられる場所の相対座標の配�
 }
 local nPlantingPoints = #plantingPoints
 local chestPoints = {       -- チェストの相対座標の配列
-    {0, 1, 0}
+    {1, 0, 0}
 }
 local nChestPoint = #chestPoints
 
@@ -49,11 +49,36 @@ function TurnToRight()
 end
 
 function TurnToSouth()
-    while f == 0 do
+    while f ~= 0 do
         TurnToRight()
     end
 end
 
+function MoveToFront()
+    if f == 0 then
+        if r.move(sides.front) then
+            dz = dz + 1
+            return true
+        end
+    elseif f == 1 then
+        if r.move(sides.front) then
+            dx = dx - 1
+            return true
+        end
+    elseif f == 2 then
+        if r.move(sides.front) then
+            dz = dz - 1
+            return true
+        end
+    elseif f == 3 then
+        if r.move(sides.front) then
+            dx = dx + 1
+            return true
+        end
+    end
+
+    return false
+end
 function MoveToPosX()
     if f == 0 then
         TurnToLeft()
@@ -275,23 +300,19 @@ end
 
 function TreeChopAndPlant()
     -- 固体ブロック(原木)でなければfalseをリターン
-    if not r.detect(sides.front) then
+    local b = r.detect(sides.front)
+    if not b then
         return false, "not solid"
     end
 
     -- その個体ブロックを破壊
-    if not r.swing(sides.front) then
+    b = r.swing(sides.front)
+    if not b then
         return false, "can not break"
     end
 
-    -- 植林
-    r.select(1)
-    r.place(sides.front)
-
     -- 破壊したブロックの座標に移動
-    if not r.move(sides.front) then
-        return false, "failed move. item of slot 1 maybe solid"
-    end
+    MoveToFront()
 
     -- 上方向に伐採(TODO:Exception Check)
     local y = 0
@@ -305,7 +326,10 @@ function TreeChopAndPlant()
         MoveToNegY()
     end
 
-    r.move(sides.back)
+    -- 植林
+    MoveToFront()
+    r.select(1)
+    r.place(sides.back)
     return true, "success"
 end
 
@@ -335,7 +359,7 @@ function StoreToChest()
         -- アイテムを格納
         for slotIdx = 2, r.inventorySize() do
             r.select(slotIdx)
-            if not r.drop(faceSide) then
+            if not r.drop(sides.front) then
                 break
             end
         end
@@ -356,7 +380,8 @@ function ReturnToHome()
     if not b then
         return false
     end
-    r.move(sides.front)
+    r.move(sides.back)
+    robot.turnArond()
     return true
 end
 
