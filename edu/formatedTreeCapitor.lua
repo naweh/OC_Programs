@@ -21,7 +21,7 @@ local plantingPoints = {    -- 木が植えられる場所の相対座標の配�
 }
 local nPlantingPoints = #plantingPoints
 local chestPoints = {       -- チェストの相対座標の配列
-    {2, 0, 0}
+    {1, 0, 0}
 }
 local nChestPoint = #chestPoints
 
@@ -215,26 +215,11 @@ end
 function MoveToPoint(x, y, z)
     -- 変数の準備
     local moved = false
+    local noMoveCnt = 0
 
     -- かなり適当な移動アルゴリズム
     while true do
         moved = false
-
-        while dy ~= y do
-            if dy < y then
-                if MoveToPosY() then
-                    moved = true
-                else
-                    break
-                end
-            else
-                if MoveToNegY() then
-                    moved = true
-                else
-                    break
-                end
-            end
-        end
 
         while dz ~= z do
             if dz < z then
@@ -268,9 +253,29 @@ function MoveToPoint(x, y, z)
             end
         end
 
-        -- 動けないなら終了
+        while dy ~= y do
+            if dy < y then
+                if MoveToPosY() then
+                    moved = true
+                else
+                    break
+                end
+            else
+                if MoveToNegY() then
+                    moved = true
+                else
+                    break
+                end
+            end
+        end
+
+        -- 動けないなら迂回を試みる
         if not moved then
-            break
+            MoveToPosY()
+            noMoveCnt = noMoveCnt + 1
+            if noMoveCnt > 4 then
+                break
+            end
         end
     end
 end
