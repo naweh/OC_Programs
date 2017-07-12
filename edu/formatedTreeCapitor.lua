@@ -14,14 +14,14 @@ local r = component.robot
 local dx, dy, dz = 0, 0, 0   -- (dx, dy, dz)は初期座標を(0, 0, 0)としてロボットの現在座標を相対座標で記録する
 local f = 0                       -- ロボットの向いている方角の初期値は南とする
 local plantingPoints = {    -- 木が植えられる場所の相対座標の配列
-    {2, 0, 2}, {4, 0, 2}, {6, 0, 2}, {8, 0, 2},
-    {8, 0, 4}, {6, 0, 4}, {4, 0, 4}, {2, 0, 4},
-    {2, 0, 6}, {4, 0, 6}, {6, 0, 6}, {8, 0, 6},
-    {8, 0, 8}, {8, 0, 6}, {8, 0, 4}, {8, 0, 2}
+    {2, 0, 2}, {5, 0, 2}, {8, 0, 2}, {11, 0, 2},
+    {11, 0, 5}, {8, 0, 5}, {5, 0, 5}, {2, 0, 5},
+    {2, 0, 8}, {5, 0, 8}, {8, 0, 8}, {11, 0, 8},
+    {11, 0, 11}, {8, 0, 11}, {5, 0, 11}, {3, 0, 11}
 }
 local nPlantingPoints = #plantingPoints
 local chestPoints = {       -- チェストの相対座標の配列
-    {1, 0, 0}
+    {2, 0, 0}
 }
 local nChestPoint = #chestPoints
 
@@ -409,7 +409,6 @@ for i=1, nPlantingPoints do
     local b = MoveToFacePoint(x, y, z)
     if not b then
         io.stderr:write(string.format( "[%s] Failed moving", i ))
-        break
     end
 
     -- 木が成長していれば伐採・植林
