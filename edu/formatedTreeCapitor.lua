@@ -201,6 +201,7 @@ function MoveToPosY()
         dy = dy + 1
         return true
     end
+    return false
 end
 
 function MoveToNegY()
@@ -208,9 +209,10 @@ function MoveToNegY()
         dy = dy - 1
         return true
     end
+    return false
 end
 
-function MoveToFacePoint(x, y, z)
+function MoveToPoint(x, y, z)
     -- 変数の準備
     local moved = false
 
@@ -218,44 +220,50 @@ function MoveToFacePoint(x, y, z)
     while true do
         moved = false
 
-        -- 指定座標に面しているかチェック
-        local diff = math.abs(dx - x) + math.abs(dz - z)
-        if diff == 1 and dy == y then
-            break
-        end
-
-        if dy ~= y then
+        while dy ~= y do
             if dy < y then
                 if MoveToPosY() then
                     moved = true
+                else
+                    break
                 end
             else
                 if MoveToNegY() then
                     moved = true
+                else
+                    break
                 end
             end
         end
 
-        if dz ~= z then
+        while dz ~= z do
             if dz < z then
                 if MoveToPosZ() then
                     moved = true
+                else
+                    break
                 end
             else
                 if MoveToNegZ() then
                     moved = true
+                else
+                    break
                 end
             end
         end
 
-        if dx ~= x then
+        while dx ~= x do
             if dx < x then
                 if MoveToPosX() then
                     moved = true
+                else
+                    break
                 end
             else
                 if MoveToNegX() then
                     moved = true
+                else
+                    break
                 end
             end
         end
@@ -265,35 +273,40 @@ function MoveToFacePoint(x, y, z)
             break
         end
     end
+end
 
-    -- 南を向く
-    TurnToSouth()
+function MoveToFacePoint(x, y, z)
+    MoveToPoint(x, y, z)
 
-    -- 指定座標の上に立っていたら後退
+    -- 指定座標の上に立っていたらfalseリターン
     if dx == x and dy == y and dz == z then
-        MoveToNegZ()
+        return false
     end
 
-    -- 指定座標に面しているかチェック
+    -- 指定座標に面していないならfalseリターン
     local diff = math.abs(dx - x) + math.abs(dz - z)
     if diff ~= 1 or dy ~= y then
         return false
     end
 
     -- 指定座標の方を向く
+    local face = 0
     if dx == x then
         if dz < z then
-            -- already set
+            face = 0
         else
-            TurnToRight()
-            TurnToRight()
+            face = 2
         end
     else
         if dx < x then
-            TurnToLeft()
+            face = 3
         else
-            TurnToRight()
+            face = 1
         end
+    end
+
+    while f ~= face do
+        TurnToRight()
     end
 
     return true
@@ -340,6 +353,7 @@ function TreeChopAndPlant()
 end
 
 function IsHaveSpace()
+    local slotIdx = 2
     for slotIdx=2, r.inventorySize() do
         if 0 < r.space(slotIdx) then
             return true
@@ -358,36 +372,26 @@ function StoreToChest()
         -- チェストまで移動
         local b = MoveToFacePoint(x, y, z)
         if not b then
-            io.stderr:write("failed move to point")
+            io.stderr:write("Failed to chest point (%s, %s, %s)", x, y, z)
             break
         end
 
         -- アイテムを格納
+        local slotIdx = 2
         for slotIdx = 2, r.inventorySize() do
             r.select(slotIdx)
-            if not r.drop(sides.front) then
-                break
-            end
-        end
-
-        -- 全アイテムを格納していれば終了
-        if slotIdx == r.inventorySize() then
-            return true
+            r.drop(sides.front)
         end
     end
-
-    -- 全チェストが一杯で格納できなかった場合falseリターン
-    return false
+    return true
 end
 
 function ReturnToHome()
     -- 初期座標へ移動
-    local b = MoveToFacePoint(0, 0, 0)
-    if not b then
+    if not MoveToPoint(0, 0, 0) then
         return false
     end
-
-    MoveToFront()
+    
     TurnToSouth()
     return true
 end
@@ -401,22 +405,23 @@ for i=1, nPlantingPoints do
     local y = plantingPoints[i][2]
     local z = plantingPoints[i][3]
 
-    print("move to point")
+    print(string.format( "[%s] Moving to (%s, %s, %s)", i, x, y, z ))
     local b = MoveToFacePoint(x, y, z)
     if not b then
-        io.stderr:write("failed move to point")
+        io.stderr:write(string.format( "[%s] Failed moving", i ))
         break
     end
 
     -- 木が成長していれば伐採・植林
-    print("tree chop")
+    print(string.format( "[%s] Trying to Chop", i ))
     if TreeChopAndPlant() then
         -- 周囲に落ちた苗木を回収
-        print("suck around")
+        print(string.format( "[%s] Suck around", i ))
         while component.tractor_beam.suck() do
         end
 
         if not IsHaveSpace() then
+            print(string.format( "[%s] No Space, Go to chest for store", i ))
             StoreToChest()
         end
     end
