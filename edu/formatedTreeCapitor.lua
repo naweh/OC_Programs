@@ -268,14 +268,9 @@ function MoveToPoint(x, y, z)
                 end
             end
         end
-
-        -- 動けないなら迂回を試みる
+        
         if not moved then
-            MoveToPosY()
-            noMoveCnt = noMoveCnt + 1
-            if noMoveCnt > 4 then
-                break
-            end
+            break
         end
     end
 end
