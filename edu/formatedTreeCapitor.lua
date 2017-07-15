@@ -218,61 +218,73 @@ function MoveToPoint(x, y, z)
     local noMoveCnt = 0
 
     -- かなり適当な移動アルゴリズム
-    while true do
-        moved = false
+    moved = false
 
-        while dz ~= z do
-            if dz < z then
-                if MoveToPosZ() then
-                    moved = true
-                else
-                    break
-                end
+    while dz ~= z do
+        if dz < z then
+            if MoveToPosZ() then
+                moved = true
             else
-                if MoveToNegZ() then
-                    moved = true
-                else
-                    break
-                end
+                MoveToPosY()
+            end
+        else
+            if MoveToNegZ() then
+                moved = true
+            else
+                MoveToPosY()
             end
         end
 
-        while dx ~= x do
-            if dx < x then
-                if MoveToPosX() then
-                    moved = true
-                else
-                    break
-                end
-            else
-                if MoveToNegX() then
-                    moved = true
-                else
-                    break
-                end
-            end
-        end
-
-        while dy ~= y do
-            if dy < y then
-                if MoveToPosY() then
-                    moved = true
-                else
-                    break
-                end
-            else
-                if MoveToNegY() then
-                    moved = true
-                else
-                    break
-                end
-            end
-        end
-        
-        if not moved then
+        if not moved and (dz ~= z - 1 or dz ~= z + 1) then
             break
         end
     end
+
+    while dx ~= x do
+        if dx < x then
+            if MoveToPosX() then
+                moved = true
+            else
+                MoveToPosY()
+            end
+        else
+            if MoveToNegX() then
+                moved = true
+            else
+                MoveToPosY()
+            end
+        end
+
+        if not moved and (dx ~= x - 1 or dx ~= x + 1) then
+            break
+        end
+    end
+
+    while dy ~= y do
+        if dy < y then
+            if MoveToPosY() then
+                moved = true
+            else
+                break
+            end
+        else
+            if MoveToNegY() then
+                moved = true
+            else
+                break
+            end
+        end
+    end
+
+    if y ~= dz then
+        return -1
+    end
+
+    if math.abs(dx - x) + math.abs(dz - z) ~= 1 then
+        return 0
+    end
+
+    return 1
 end
 
 function MoveToFacePoint(x, y, z)
