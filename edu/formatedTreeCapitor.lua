@@ -218,9 +218,8 @@ function MoveToPoint(x, y, z)
     local noMoveCnt = 0
 
     -- かなり適当な移動アルゴリズム
-    moved = false
-
     while dz ~= z do
+        moved = false
         if dz < z then
             if MoveToPosZ() then
                 moved = true
@@ -236,11 +235,13 @@ function MoveToPoint(x, y, z)
         end
 
         if not moved and (dz ~= z - 1 or dz ~= z + 1) then
+            MoveToFront()
             break
         end
     end
 
     while dx ~= x do
+        moved = false
         if dx < x then
             if MoveToPosX() then
                 moved = true
@@ -256,6 +257,7 @@ function MoveToPoint(x, y, z)
         end
 
         if not moved and (dx ~= x - 1 or dx ~= x + 1) then
+            MoveToFront()
             break
         end
     end
