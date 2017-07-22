@@ -8,6 +8,7 @@
 local component = require("component")
 local robot = require("robot")
 local sides = require("sides")
+local shell = require("shell")
 
 -- 変数の準備
 local r = component.robot
@@ -412,34 +413,40 @@ end
 
 
 ---------------- Main Process ----------------
--- 各植林ポイントを巡回し、木が成長していれば伐採・植林
-print("--- formated Tree Capitor Program ---")
-for i=1, nPlantingPoints do
-    local x = plantingPoints[i][1]
-    local y = plantingPoints[i][2]
-    local z = plantingPoints[i][3]
+while true do
+    -- 各植林ポイントを巡回し、木が成長していれば伐採・植林
+    print("--- formated Tree Capitor Program ---")
+    for i=1, nPlantingPoints do
+        local x = plantingPoints[i][1]
+        local y = plantingPoints[i][2]
+        local z = plantingPoints[i][3]
 
-    print(string.format( "[%s] Moving to (%s, %s, %s)", i, x, y, z ))
-    local b = MoveToFacePoint(x, y, z)
-    if not b then
-        io.stderr:write(string.format( "[%s] Failed moving", i ))
-    end
-
-    -- 木が成長していれば伐採・植林
-    print(string.format( "[%s] Trying to Chop", i ))
-    if TreeChopAndPlant() then
-        -- 周囲に落ちた苗木を回収
-        print(string.format( "[%s] Suck around", i ))
-        while component.tractor_beam.suck() do
+        print(string.format( "[%s] Moving to (%s, %s, %s)", i, x, y, z ))
+        local b = MoveToFacePoint(x, y, z)
+        if not b then
+            io.stderr:write(string.format( "[%s] Failed moving", i ))
         end
 
-        if not IsHaveSpace() then
-            print(string.format( "[%s] No Space, Go to chest for store", i ))
-            StoreToChest()
+        -- 木が成長していれば伐採・植林
+        print(string.format( "[%s] Trying to Chop", i ))
+        if TreeChopAndPlant() then
+            -- 周囲に落ちた苗木を回収
+            print(string.format( "[%s] Suck around", i ))
+            while component.tractor_beam.suck() do
+            end
+
+            if not IsHaveSpace() then
+                print(string.format( "[%s] No Space, Go to chest for store", i ))
+                StoreToChest()
+            end
         end
     end
+
+    -- 初期配置へ戻る
+    StoreToChest()
+    ReturnToHome()
+
+    -- 180sec待機
+    shell.execute("sleep 180")
+
 end
-
--- 初期配置へ戻る
-StoreToChest()
-ReturnToHome()
