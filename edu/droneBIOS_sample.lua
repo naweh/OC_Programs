@@ -15,7 +15,7 @@ end
 -- クライアントからのメッセージを受信
 local function receive()
     while (true) do
-        local evt, _, _, _, _, cmd = computer.pullSiginal()
+        local evt, _, _, _, _, cmd = computer.pullSignal()
         if (evt == "modem_message") then
             -- 受信したシグナルがクライアントからのメッセージなら、
             -- 受信メッセージを解釈して、その結果を返す

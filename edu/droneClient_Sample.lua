@@ -1,6 +1,6 @@
 local component = require("component")
 local event = require("event")
-local modem = componet.modem
+local modem = component.modem
 
 -- ポート2412でサーバに接続
 modem.open(2412)
